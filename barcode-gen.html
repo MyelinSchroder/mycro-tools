@@ -8,7 +8,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
     <style>
-        /* Add your updated styles */
         .logo {
             position: absolute;
             top: 10px;
@@ -137,12 +136,15 @@
         document.getElementById('generateSingleBtn').addEventListener('click', function() {
             const singleBarcode = document.getElementById('singleBarcodeInput').value.trim();
             const selectedFormat = document.getElementById('barcodeFormat').value;
-            const isValidUPC = selectedFormat === 'UPC' && /^\d{12}$/.test(singleBarcode);
-            
-            if (selectedFormat === 'UPC' && !isValidUPC) {
-                alert("UPC-A requires exactly 12 numeric characters.");
-                return;
+
+            // Validate for UPC-A
+            if (selectedFormat === 'UPC') {
+                if (!/^\d{12}$/.test(singleBarcode)) {
+                    alert("UPC-A requires exactly 12 numeric characters.");
+                    return;
+                }
             }
+            
             if (singleBarcode) {
                 barcodeNumbers = [singleBarcode];
                 generateBarcodes(barcodeNumbers);
@@ -185,6 +187,7 @@
                 barcodeItem.appendChild(actions);
                 barcodeContainer.appendChild(barcodeItem);
 
+                // Generate the barcode, applying different configurations for UPC-A
                 JsBarcode(svg, number, {
                     format: selectedFormat,
                     displayValue: true,
@@ -192,7 +195,12 @@
                     width: selectedFormat === "UPC" ? 2 : 3, // Adjust width for UPC
                     height: 100,
                     margin: 10,
-                    textPosition: "bottom", // Ensures text is visible
+                    textPosition: "bottom",
+                    valid: function (valid) {
+                        if (!valid) {
+                            alert("Invalid barcode number for selected format.");
+                        }
+                    }
                 });
             });
         }
