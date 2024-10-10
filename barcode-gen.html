@@ -9,7 +9,6 @@
     <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
     <style>
         /* Add your updated styles */
-        /* Logo styling - make circular */
         .logo {
             position: absolute;
             top: 10px;
@@ -30,7 +29,6 @@
             object-fit: cover;
         }
 
-        /* Centered title and input styling */
         body {
             font-family: Arial, sans-serif;
             display: flex;
@@ -80,7 +78,6 @@
             background-color: #45a049;
         }
 
-        /* Barcode display */
         .barcode-container {
             display: flex;
             flex-wrap: wrap;
@@ -99,12 +96,10 @@
 </head>
 <body>
 
-    <!-- Circular Logo -->
     <div class="logo">
         <img src="https://cdn.midjourney.com/a153843d-b762-476f-914b-a39905e4b517/0_0.png" alt="Logo">
     </div>
 
-    <!-- Centered Title and Input -->
     <h1>Barcode Generator</h1>
     <div class="input-container">
         <input type="file" id="csvFileInput" accept=".csv">
@@ -156,8 +151,7 @@
 
         function parseCSV(csvText) {
             const rows = csvText.split('\n');
-            const barcodeNumbers = rows.map(row => row.trim()).filter(num => num.length > 0);
-            return barcodeNumbers;
+            return rows.map(row => row.trim()).filter(num => num.length > 0);
         }
 
         function generateBarcodes(barcodeNumbers) {
@@ -195,9 +189,10 @@
                     format: selectedFormat,
                     displayValue: true,
                     fontSize: 18,
-                    width: 3,
+                    width: selectedFormat === "UPC" ? 2 : 3, // Adjust width for UPC
                     height: 100,
-                    margin: 10
+                    margin: 10,
+                    textPosition: "bottom", // Ensures text is visible
                 });
             });
         }
@@ -248,8 +243,7 @@
                     context.fillStyle = "#ffffff";
                     context.fillRect(0, 0, canvas.width, canvas.height);
                     context.drawImage(img, padding, padding);
-                    const pngDataUrl = canvas.toDataURL('image/png');
-                    resolve(pngDataUrl);
+                    resolve(canvas.toDataURL('image/png'));
                 };
 
                 img.onerror = reject;
