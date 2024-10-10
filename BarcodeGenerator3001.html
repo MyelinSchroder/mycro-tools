@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barcode Generator</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    <style>
+        /* Add styles here */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            position: relative;
+        }
+        input[type="file"], input[type="text"], select {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+            font-size: 16px;
+            width: 100%;
+            max-width: 400px;
+        }
+        button {
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .input-container {
+            margin-bottom: 30px;
+        }
+        .barcode-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .barcode-item {
+            margin: 10px;
+            text-align: center;
+        }
+        .barcode-actions {
+            margin-top: 10px;
+        }
+        svg {
+            max-width: 100%;
+        }
+        .logo {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        .logo img {
+            width: 100px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="logo">
+        <img src="https://cdn.midjourney.com/a153843d-b762-476f-914b-a39905e4b517/0_0.png" alt="Logo">
+    </div>
+
+    <h1>Barcode Generator</h1>
+    <div class="input-container">
+        <input type="file" id="csvFileInput" accept=".csv">
+        <input type="text" id="singleBarcodeInput" placeholder="Enter barcode number" />
+        <select id="barcodeFormat">
+            <option value="CODE128">Code 128</option>
+            <option value="UPC">UPC-A</option>
+            <option value="CODE39">Code 39</option>
+        </select>
+        <button id="generateSingleBtn">Generate Single Barcode</button>
+    </div>
+
+    <button id="exportBtn" style="display:none;">Download Barcodes as ZIP</button>
+    <div class="barcode-container" id="barcodeContainer"></div>
+
+    <script>
+        const barcodeContainer = document.getElementById('barcodeContainer');
+        const exportBtn = document.getElementById('exportBtn');
+        let barcodeNumbers = [];
+
+        document.getElementById('csvFileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const text = e.target.result;
+                    barcodeNumbers = parseCSV(text);
+                    generateBarcodes(barcodeNumbers);
+                    exportBtn.style.display = 'block';
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        document.getElementById('generateSingleBtn').addEventListener('click', function() {
+            const singleBarcode = document.getElementById('singleBarcodeInput').value.trim();
+            if (singleBarcode) {
+                barcodeNumbers = [singleBarcode];
+                generateBarcodes(barcodeNumbers);
+            }
+        });
+
+        function parseCSV(csvText) {
+            const rows = csvText.split('\n');
+            const barcodeNumbers = rows.map(row => row.trim()).filter(num => num.length > 0);
+            return barcodeNumbers;
+        }
+
+        function generateBarcodes(barcodeNumbers) {
+            barcodeContainer.innerHTML = '';
+            const selectedFormat = document.getElementById('barcodeFormat').value;
+            
+            barcodeNumbers.forEach(number => {
+                const barcodeItem = document.createElement('div');
+                barcodeItem.className = 'barcode-item';
+                
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.id = 'barcode-' + number;
+                barcodeItem.appendChild(svg);
+
+                const label = document.createElement('p');
+                label.textContent = number;
+                barcodeItem.appendChild(label);
+
+                const actions = document.createElement('div');
+                actions.className = 'barcode-actions';
+                const saveButton = document.createElement('button');
+                saveButton.textContent = 'Save Image';
+                const copyButton = document.createElement('button');
+                copyButton.textContent = 'Copy Image';
+
+                saveButton.addEventListener('click', () => saveBarcodeAsImage(svg, number));
+                copyButton.addEventListener('click', () => copyBarcodeToClipboard(svg));
+
+                actions.appendChild(saveButton);
+                actions.appendChild(copyButton);
+                barcodeItem.appendChild(actions);
+                barcodeContainer.appendChild(barcodeItem);
+
+                JsBarcode(svg, number, {
+                    format: selectedFormat,
+                    displayValue: true,
+                    fontSize: 18,
+                    width: 3,
+                    height: 100,
+                    margin: 10
+                });
+            });
+        }
+
+        function saveBarcodeAsImage(svgElement, fileName) {
+            svgToPngDataUrl(svgElement).then(pngDataUrl => {
+                const link = document.createElement('a');
+                link.href = pngDataUrl;
+                link.download = fileName + '.png';
+                link.click();
+            });
+        }
+
+        function copyBarcodeToClipboard(svgElement) {
+            svgToPngDataUrl(svgElement).then(pngDataUrl => {
+                const img = new Image();
+                img.src = pngDataUrl;
+
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                img.onload = () => {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    context.drawImage(img, 0, 0);
+                    canvas.toBlob(blob => {
+                        const item = new ClipboardItem({'image/png': blob});
+                        navigator.clipboard.write([item]);
+                        alert('Barcode image copied to clipboard!');
+                    });
+                };
+            });
+        }
+
+        function svgToPngDataUrl(svgElement) {
+            return new Promise((resolve, reject) => {
+                const svgData = new XMLSerializer().serializeToString(svgElement);
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                const img = new Image();
+
+                const svgRect = svgElement.getBoundingClientRect();
+                const padding = 30;
+                canvas.width = svgRect.width + padding * 2;
+                canvas.height = svgRect.height + padding * 2;
+
+                img.onload = function() {
+                    context.clearRect(0, 0, canvas.width, canvas.height);
+                    context.fillStyle = "#ffffff";
+                    context.fillRect(0, 0, canvas.width, canvas.height);
+                    context.drawImage(img, padding, padding);
+                    const pngDataUrl = canvas.toDataURL('image/png');
+                    resolve(pngDataUrl);
+                };
+
+                img.onerror = reject;
+                img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+            });
+        }
+
+        async function downloadBarcodesAsZip() {
+            const zip = new JSZip();
+            const folder = zip.folder('barcodes');
+            const promises = [];
+
+            barcodeNumbers.forEach(number => {
+                const svg = document.getElementById('barcode-' + number);
+                const promise = svgToPngDataUrl(svg).then(pngDataUrl => {
+                    const imgData = pngDataUrl.split(',')[1];
+                    folder.file(number + '.png', imgData, { base64: true });
+                });
+                promises.push(promise);
+            });
+
+            await Promise.all(promises);
+
+            zip.generateAsync({ type: 'blob' }).then(content => {
+                saveAs(content, 'barcodes.zip');
+            });
+        }
+
+        exportBtn.addEventListener('click', downloadBarcodesAsZip);
+    </script>
+
+</body>
+</html>
