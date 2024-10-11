@@ -137,10 +137,10 @@
             const singleBarcode = document.getElementById('singleBarcodeInput').value.trim();
             const selectedFormat = document.getElementById('barcodeFormat').value;
 
-            // Validate for UPC-A
+            // Enhanced validation for UPC-A
             if (selectedFormat === 'UPC') {
                 if (!/^\d{12}$/.test(singleBarcode)) {
-                    alert("UPC-A requires exactly 12 numeric characters.");
+                    alert("UPC-A requires exactly 12 numeric characters. Please enter a valid 12-digit number.");
                     return;
                 }
             }
