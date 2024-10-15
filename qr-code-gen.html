@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code Generator</title>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
     <style>
         .logo {
             position: absolute;
@@ -50,7 +52,7 @@
             margin-bottom: 30px;
         }
 
-        input[type="text"], select {
+        input[type="file"], input[type="text"], select {
             padding: 10px;
             border-radius: 5px;
             border: 1px solid #ccc;
@@ -99,19 +101,38 @@
 
     <h1>QR Code Generator</h1>
     <div class="input-container">
+        <input type="file" id="csvFileInput" accept=".csv">
         <input type="text" id="qrTextInput" placeholder="Enter text for QR code" />
         <select id="qrSize">
             <option value="128">128 x 128</option>
             <option value="256">256 x 256</option>
             <option value="512">512 x 512</option>
         </select>
-        <button id="generateQrBtn">Generate QR Code</button>
+        <button id="generateQrBtn">Generate Single QR Code</button>
+        <button id="exportBtn" style="display:none;">Download All QR Codes as ZIP</button>
     </div>
 
     <div class="qr-container" id="qrContainer"></div>
 
     <script>
         const qrContainer = document.getElementById('qrContainer');
+        const exportBtn = document.getElementById('exportBtn');
+        let qrDataList = [];
+
+        // Handle CSV file input
+        document.getElementById('csvFileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const text = e.target.result;
+                    qrDataList = parseCSV(text);
+                    generateBatchQRCodes(qrDataList);
+                    exportBtn.style.display = 'block';
+                };
+                reader.readAsText(file);
+            }
+        });
 
         document.getElementById('generateQrBtn').addEventListener('click', function() {
             const qrText = document.getElementById('qrTextInput').value.trim();
@@ -124,12 +145,23 @@
             }
         });
 
-        function generateQRCode(text, size) {
-            qrContainer.innerHTML = ''; // Clear previous QR codes
+        function parseCSV(csvText) {
+            const rows = csvText.split('\n');
+            return rows.map(row => row.trim()).filter(num => num.length > 0);
+        }
 
+        function generateBatchQRCodes(dataList) {
+            qrContainer.innerHTML = ''; // Clear previous QR codes
+            const qrSize = parseInt(document.getElementById('qrSize').value);
+
+            dataList.forEach(data => {
+                generateQRCode(data, qrSize);
+            });
+        }
+
+        function generateQRCode(text, size) {
             const qrItem = document.createElement('div');
             qrItem.className = 'qr-item';
-            qrContainer.appendChild(qrItem);
 
             const qrCode = new QRCode(qrItem, {
                 text: text,
@@ -137,12 +169,17 @@
                 height: size,
             });
 
-            // Add Save button
+            const label = document.createElement('p');
+            label.textContent = text;
+            qrItem.appendChild(label);
+
             const saveButton = document.createElement('button');
             saveButton.textContent = 'Save Image';
             saveButton.className = 'qr-actions';
             saveButton.addEventListener('click', () => saveQrCode(qrItem, text));
             qrItem.appendChild(saveButton);
+
+            qrContainer.appendChild(qrItem);
         }
 
         function saveQrCode(qrElement, fileName) {
@@ -156,6 +193,36 @@
                 alert('QR code generation error. Please try again.');
             }
         }
+
+        async function downloadAllQRCodesAsZip() {
+            const zip = new JSZip();
+            const folder = zip.folder('qr_codes');
+            const promises = [];
+
+            const qrItems = qrContainer.getElementsByClassName('qr-item');
+            Array.from(qrItems).forEach(qrItem => {
+                const canvas = qrItem.querySelector('canvas');
+                const text = qrItem.querySelector('p').textContent;
+
+                if (canvas) {
+                    const promise = new Promise(resolve => {
+                        canvas.toBlob(blob => {
+                            folder.file(`${text}.png`, blob);
+                            resolve();
+                        });
+                    });
+                    promises.push(promise);
+                }
+            });
+
+            await Promise.all(promises);
+
+            zip.generateAsync({ type: 'blob' }).then(content => {
+                saveAs(content, 'qr_codes.zip');
+            });
+        }
+
+        exportBtn.addEventListener('click', downloadAllQRCodesAsZip);
     </script>
 
 </body>
