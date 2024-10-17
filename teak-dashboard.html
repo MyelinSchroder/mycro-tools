@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Interactive Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+        body { background-color: #1d1d2b; color: #f5f6f7; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        h1 { color: #f39c12; margin-bottom: 20px; }
+        .dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; width: 90vw; max-width: 1200px; }
+        .widget { background-color: #28293e; padding: 20px; border-radius: 12px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3); position: relative; transition: transform 0.3s, box-shadow 0.3s; overflow: hidden; }
+        .widget:hover { transform: scale(1.05); box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.5); }
+        .widget h2 { font-size: 1.2rem; margin-bottom: 10px; color: #f39c12; }
+        .stat-value { font-size: 2.2rem; color: #66d3fa; font-weight: 600; display: flex; align-items: center; gap: 5px; animation: pulse 1.5s infinite alternate; }
+        .up-arrow { color: #28a745; }
+        .down-arrow { color: #dc3545; }
+        .dropdown, .date-picker, .daterange-picker, .slider { background-color: #33354d; color: #f5f6f7; padding: 8px; border-radius: 8px; border: none; cursor: pointer; width: 100%; text-align: center; }
+        .chart-container { width: 100%; height: 150px; }
+        .btn { background-color: #66d3fa; border: none; color: #1d1d2b; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: background-color 0.2s; }
+        .btn:hover { background-color: #4eb8e0; }
+        .theme-toggle { position: absolute; top: 20px; right: 20px; cursor: pointer; color: #66d3fa; font-size: 1.5rem; transition: transform 0.3s; }
+        .theme-toggle:hover { transform: rotate(20deg); }
+        .animation-slow { animation-duration: 3s; }
+        .progress-bar { width: 0; height: 8px; background-color: #f39c12; transition: width 0.4s; }
+        .slider { width: 100%; }
+        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.05); } }
+        .aos-animate { transition-duration: 2s; }
+        .dark-mode { background-color: #333; color: #ccc; }
+    </style>
+</head>
+<body>
+
+    <h1>Advanced Interactive Dashboard</h1>
+    <i class="fas fa-moon theme-toggle" id="themeToggle" onclick="toggleTheme()"></i>
+
+    <div class="dashboard">
+        <!-- Counter Widget with Trend Indicator -->
+        <div class="widget" data-aos="zoom-in">
+            <h2>Engagement Rate <i class="fas fa-chart-line up-arrow"></i></h2>
+            <div class="stat-value" id="engagementCounter">85%</div>
+            <select class="dropdown" onchange="changeTimeframe(this, 'engagementCounter')">
+                <option value="24">Last 24 Hours</option>
+                <option value="7">Last 7 Days</option>
+                <option value="30">Last 30 Days</option>
+            </select>
+            <div class="progress-bar" id="engagementProgress"></div>
+        </div>
+
+        <!-- Dial Chart with Real-Time Animation -->
+        <div class="widget" data-aos="fade-up">
+            <h2>Conversion Rate</h2>
+            <canvas id="dialChart" class="chart-container"></canvas>
+            <select class="dropdown" id="conversionFilter" onchange="updateDialChart()"> 
+                <option value="65">Standard</option>
+                <option value="80">Optimized</option>
+                <option value="50">Experimental</option>
+            </select>
+        </div>
+
+        <!-- Line Chart with Date Range Picker and Animated Update -->
+        <div class="widget" data-aos="zoom-in">
+            <h2>Monthly Revenue Growth</h2>
+            <canvas id="lineChart" class="chart-container"></canvas>
+            <input type="text" class="daterange-picker" id="dateRangePicker">
+        </div>
+
+        <!-- Bar Chart with Drill-Down Button and Animation -->
+        <div class="widget" data-aos="fade-right">
+            <h2>Top Product Performance</h2>
+            <canvas id="barChart" class="chart-container"></canvas>
+            <button class="btn" onclick="openModal()">View Details</button>
+        </div>
+
+        <!-- Donut Chart with Real-Time Animation -->
+        <div class="widget" data-aos="zoom-in">
+            <h2>User Demographics</h2>
+            <canvas id="donutChart" class="chart-container animation-slow"></canvas>
+        </div>
+
+        <!-- Real-Time Visitors Counter -->
+        <div class="widget" data-aos="fade-up">
+            <h2>Real-Time Visitors</h2>
+            <div class="stat-value" id="visitorCounter">312</div>
+        </div>
+
+        <!-- Slider Control -->
+        <div class="widget" data-aos="zoom-in">
+            <h2>Custom Threshold</h2>
+            <input type="range" class="slider" id="thresholdSlider" min="0" max="100" step="1" oninput="updateThreshold()">
+            <p>Threshold: <span id="thresholdValue">50</span>%</p>
+        </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div id="detailsModal" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.8); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+        <div style="background-color: #28293e; padding: 30px; border-radius: 10px; width: 80%; text-align: center;">
+            <h2>Product Performance Details</h2>
+            <p>Drill-down insights for each product's metrics are available here.</p>
+            <button class="btn" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+    <script>
+        // AOS for animations
+        AOS.init();
+
+        // Theme Toggle
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const themeIcon = document.getElementById('themeToggle');
+            themeIcon.classList.toggle('fa-sun');
+            themeIcon.classList.toggle('fa-moon');
+        }
+
+        // Modal Functions
+        function openModal() { document.getElementById('detailsModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('detailsModal').style.display = 'none'; }
+
+        // Date Range Picker
+        $('#dateRangePicker').daterangepicker({
+            opens: 'left'
+        }, function(start, end) {
+            updateLineChart(start, end);
+        });
+
+        // Update Threshold
+        function updateThreshold() {
+            let threshold = document.getElementById('thresholdSlider').value;
+            document.getElementById('thresholdValue').textContent = threshold;
+        }
+
+        // Live Stats
+        setInterval(() => {
+            document.getElementById("visitorCounter").textContent = Math.floor(300 + Math.random() * 20);
+            document.getElementById("engagementCounter").textContent = Math.floor(80 + Math.random() * 10) + "%";
+        }, 2000);
+
+        // Charts
+        const dialChart = new Chart(document.getElementById('dialChart'), {
+            type: 'doughnut',
+            data: { datasets: [{ data: [65, 35], backgroundColor: ['#66d3fa', '#28293e'], borderWidth: 0 }] },
+            options: { circumference: 180, rotation: 270, cutout: '80%', plugins: { legend: { display: false } } }
+        });
+
+        const lineChart = new Chart(document.getElementById('lineChart'), {
+            type: 'line',
+            data: { labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], datasets: [{ label: 'Revenue', data: [12000, 15000, 14000, 20000, 25000, 22000], borderColor: '#66d3fa', backgroundColor: 'rgba(102, 211, 250, 0.1)', fill: true }] },
+            options: { plugins: { legend: { display: false } } }
+        });
+
+        function updateLineChart(start, end) {
+            lineChart.data.datasets[0].data = Array.from({ length: 6 }, () => Math.floor(12000 + Math.random() * 15000));
+            lineChart.update();
+        }
+
+        new Chart(document.getElementById('barChart'), {
+            type: 'bar',
+            data: { labels: ['Product A', 'Product B', 'Product C', 'Product D'], datasets: [{ label: 'Sales', data: [5000, 3000, 4000, 6000], backgroundColor: '#f39c12' }] },
+            options: { plugins: { legend: { display: false } } }
+        });
+
+        new Chart(document.getElementById('donutChart'), {
+            type: 'doughnut',
+            data: { labels: ['Male', 'Female', 'Other'], datasets: [{ data: [55, 40, 5], backgroundColor: ['#66d3fa', '#f39c12', '#28293e'] }] },
+            options: { plugins: { legend: { display: false } } }
+        });
+    </script>
+</body>
+</html>
