@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Scratch-Off Ticket</title>
   <style>
     #scratch-card {
@@ -26,9 +25,9 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: silver; /* Scratch layer color */
-      z-index: 2;
+      /* Removed background property */
       cursor: pointer;
+      z-index: 2;
     }
   </style>
 </head>
@@ -36,17 +35,17 @@
 
 <div id="scratch-card">
   <span id="prize-message">🎉 You Won! 🎉</span>
-  <canvas id="canvas"></canvas>
+  <canvas id="canvas">SCRUB ME</canvas>
 </div>
 
 <script>
   const prizeMessages = [
-    "🎉 You Won a Free Coffee! 🎉",
-    "🎈 50% Off Your Next Purchase! 🎈",
-    "🌟 You Won a Mystery Gift! 🌟",
-    "🎁 Congratulations! You Won a Free T-Shirt! 🎁",
-    "💰 Jackpot! You Won $100! 💰",
-    "🔥 Special Offer: Buy One Get One Free! 🔥"
+    "🎉 Eww, Don't Touch Me There! 🎉",
+    "🎈 You Probably Don't Have A Spider On You! 🎈",
+    "🌟 Don't Look Behind You! 🌟",
+    "🎁 Congratulations! You Found Me! 🎁",
+    "💰 Jackpot! You Won Something! Please Enter Your Social Security Number to Claim!!! 💰",
+    "🔥 Special Offer! Inquire Within! 🔥"
   ];
 
   // Randomly select a prize message
@@ -56,13 +55,24 @@
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
 
-  // Set canvas size and fill color
+  // Set canvas size
   canvas.width = canvas.offsetWidth;
   canvas.height = canvas.offsetHeight;
-  ctx.fillStyle = 'silver';
+
+  // Draw the scratch-off layer onto the canvas
+  const scratchPattern = new Image();
+  scratchPattern.onload = () => {
+    ctx.drawImage(scratchPattern, 0, 0, canvas.width, canvas.height);
+  };
+  // Use a solid color or an image for the scratch-off layer
+  scratchPattern.src = ''; // Leave empty to use a solid color
+
+  // If you prefer a solid color, fill the canvas with the scratch-off color
+  ctx.fillStyle = 'silver'; // Scratch-off layer color
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  ctx.globalCompositeOperation = 'destination-out'; // Set to erase
+  // Set composite operation for scratch effect
+  ctx.globalCompositeOperation = 'destination-out';
 
   let isDrawing = false;
 
@@ -72,8 +82,13 @@
     scratch(e);
   });
 
-  canvas.addEventListener('mousemove', scratch);
-  canvas.addEventListener('mouseup', () => isDrawing = false);
+  canvas.addEventListener('mousemove', (e) => {
+    if (isDrawing) scratch(e);
+  });
+
+  canvas.addEventListener('mouseup', () => {
+    isDrawing = false;
+  });
 
   // Touch events for mobile compatibility
   canvas.addEventListener('touchstart', (e) => {
@@ -83,20 +98,21 @@
   });
 
   canvas.addEventListener('touchmove', (e) => {
-    scratch(e.touches[0]);
+    if (isDrawing) scratch(e.touches[0]);
     e.preventDefault();
   });
 
-  canvas.addEventListener('touchend', () => isDrawing = false);
+  canvas.addEventListener('touchend', () => {
+    isDrawing = false;
+  });
 
   function scratch(e) {
-    if (!isDrawing) return;
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
     ctx.beginPath();
-    ctx.arc(x, y, 15, 0, Math.PI * 2); // Draw a circular scratch area
+    ctx.arc(x, y, 20, 0, Math.PI * 2); // Erase in a circular area
     ctx.fill();
   }
 </script>
