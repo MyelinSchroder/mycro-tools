@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scratch-Off Ticket</title>
+  <style>
+    #scratch-card {
+      position: relative;
+      width: 300px;
+      height: 200px;
+      background: #ccc; /* Background color for hidden prize */
+    }
+    #canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: gray; /* Color of the scratchable surface */
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div id="scratch-card">
+  <p style="padding: 20px; text-align: center;">🎉 You Won! 🎉</p>
+  <canvas id="canvas"></canvas>
+</div>
+
+<script>
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+
+  // Resize canvas to match parent div
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+
+  // Fill the canvas with a solid color to represent scratch-off layer
+  ctx.fillStyle = 'gray';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Set up "destination-out" composite operation to make scratches transparent
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.lineWidth = 20;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+
+  let isDrawing = false;
+
+  canvas.addEventListener('mousedown', () => { isDrawing = true });
+  canvas.addEventListener('mouseup', () => { isDrawing = false; ctx.beginPath(); });
+  canvas.addEventListener('mousemove', scratch);
+
+  function scratch(e) {
+    if (!isDrawing) return;
+    
+    ctx.beginPath();
+    ctx.moveTo(e.offsetX, e.offsetY);
+    ctx.lineTo(e.offsetX, e.offsetY);
+    ctx.stroke();
+  }
+</script>
+
+</body>
+</html>
