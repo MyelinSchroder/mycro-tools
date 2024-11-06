@@ -9,7 +9,11 @@
       position: relative;
       width: 300px;
       height: 200px;
-      background: #97EAD2; /* Background color for hidden prize */
+      background: #ccc; /* Background color for hidden prize */
+      text-align: center;
+      line-height: 200px; /* Center the text */
+      font-size: 24px;
+      color: #7FEFBD;
     }
     #canvas {
       position: absolute;
@@ -17,7 +21,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: red; /* Color of the scratchable surface */
+      background: #CBA135; /* Color of the scratchable surface */
       cursor: pointer;
     }
   </style>
@@ -25,41 +29,70 @@
 <body>
 
 <div id="scratch-card">
-  <p style="padding: 20px; text-align: center;">🎉 You Won! 🎉</p>
-  <canvas id="canvas"></canvas>
+  🎉 You Won! 🎉
+  <canvas id="canvas">Scrub</canvas>
 </div>
 
 <script>
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
 
-  // Resize canvas to match parent div
+  // Set canvas size
   canvas.width = canvas.offsetWidth;
   canvas.height = canvas.offsetHeight;
 
-  // Fill the canvas with a solid color to represent scratch-off layer
-  ctx.fillStyle = #CBA135;
+  // Fill the canvas with the scratch-off color
+  ctx.fillStyle = 'gray';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Set up "destination-out" composite operation to make scratches transparent
+  // Set composite operation for scratching effect
   ctx.globalCompositeOperation = 'destination-out';
-  ctx.lineWidth = 20;
+  ctx.lineWidth = 20; // Size of the "scratch" area
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
 
   let isDrawing = false;
 
-  canvas.addEventListener('mousedown', () => { isDrawing = true });
-  canvas.addEventListener('mouseup', () => { isDrawing = false; ctx.beginPath(); });
+  // Mouse events for desktop
+  canvas.addEventListener('mousedown', (e) => {
+    isDrawing = true;
+    scratch(e);
+  });
+
   canvas.addEventListener('mousemove', scratch);
+  
+  canvas.addEventListener('mouseup', () => {
+    isDrawing = false;
+    ctx.beginPath(); // Reset path to avoid connecting lines
+  });
+
+  // Touch events for mobile
+  canvas.addEventListener('touchstart', (e) => {
+    isDrawing = true;
+    scratch(e.touches[0]);
+  });
+
+  canvas.addEventListener('touchmove', (e) => {
+    scratch(e.touches[0]);
+    e.preventDefault(); // Prevent scrolling
+  });
+
+  canvas.addEventListener('touchend', () => {
+    isDrawing = false;
+    ctx.beginPath();
+  });
 
   function scratch(e) {
     if (!isDrawing) return;
-    
-    ctx.beginPath();
-    ctx.moveTo(e.offsetX, e.offsetY);
-    ctx.lineTo(e.offsetX, e.offsetY);
+
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    ctx.lineTo(x, y);
     ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
   }
 </script>
 
