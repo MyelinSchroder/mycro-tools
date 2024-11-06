@@ -14,6 +14,7 @@
       font-size: 24px;
       text-align: center;
       line-height: 200px; /* Center the text vertically */
+      overflow: hidden;
     }
     #canvas {
       position: absolute;
@@ -29,11 +30,25 @@
 <body>
 
 <div id="scratch-card">
-  🎉 You Won! 🎉
+  <span id="prize-message">🎉 You Won! 🎉</span>
   <canvas id="canvas"></canvas>
 </div>
 
 <script>
+  // Array of possible prize messages
+  const prizeMessages = [
+    "🎉 You Won a Free Coffee! 🎉",
+    "🎈 50% Off Your Next Purchase! 🎈",
+    "🌟 You Won a Mystery Gift! 🌟",
+    "🎁 Congratulations! You Won a Free T-Shirt! 🎁",
+    "💰 Jackpot! You Won $100! 💰",
+    "🔥 Special Offer: Buy One Get One Free! 🔥"
+  ];
+
+  // Randomly select a prize message and display it
+  const prizeMessage = prizeMessages[Math.floor(Math.random() * prizeMessages.length)];
+  document.getElementById("prize-message").textContent = prizeMessage;
+
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
 
