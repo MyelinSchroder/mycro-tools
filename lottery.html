@@ -9,12 +9,16 @@
       position: relative;
       width: 300px;
       height: 200px;
-      background: #f4d742; /* Background color for hidden prize */
+      background: #f4d742; /* Prize layer color */
       color: black;
       font-size: 24px;
       text-align: center;
-      line-height: 200px; /* Center the text vertically */
+      line-height: 200px;
       overflow: hidden;
+    }
+    #prize-message {
+      position: relative;
+      z-index: 1;
     }
     #canvas {
       position: absolute;
@@ -22,7 +26,8 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: silver; /* Scratchable surface color */
+      background: silver; /* Scratch layer color */
+      z-index: 2;
       cursor: pointer;
     }
   </style>
@@ -35,7 +40,6 @@
 </div>
 
 <script>
-  // Array of possible prize messages
   const prizeMessages = [
     "🎉 You Won a Free Coffee! 🎉",
     "🎈 50% Off Your Next Purchase! 🎈",
@@ -45,83 +49,56 @@
     "🔥 Special Offer: Buy One Get One Free! 🔥"
   ];
 
-  // Randomly select a prize message and display it
+  // Randomly select a prize message
   const prizeMessage = prizeMessages[Math.floor(Math.random() * prizeMessages.length)];
   document.getElementById("prize-message").textContent = prizeMessage;
 
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
 
-  // Set canvas size
-  function resizeCanvas() {
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-    ctx.fillStyle = 'silver';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
+  // Set canvas size and fill color
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+  ctx.fillStyle = 'silver';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  resizeCanvas(); // Initialize the canvas size and color
-
-  // Set composite operation for scratching effect
-  ctx.globalCompositeOperation = 'destination-out';
-  ctx.lineWidth = 20; // Size of the "scratch" area
-  ctx.lineJoin = 'round';
-  ctx.lineCap = 'round';
+  ctx.globalCompositeOperation = 'destination-out'; // Set to erase
 
   let isDrawing = false;
 
-  // Mouse events for desktop
+  // Mouse events for scratch effect
   canvas.addEventListener('mousedown', (e) => {
     isDrawing = true;
     scratch(e);
-    console.log('mousedown detected');
   });
 
-  canvas.addEventListener('mousemove', (e) => {
-    scratch(e);
-    if (isDrawing) console.log('mousemove detected');
-  });
+  canvas.addEventListener('mousemove', scratch);
+  canvas.addEventListener('mouseup', () => isDrawing = false);
 
-  canvas.addEventListener('mouseup', () => {
-    isDrawing = false;
-    ctx.beginPath(); // Reset path to avoid connecting lines
-    console.log('mouseup detected');
-  });
-
-  // Touch events for mobile
+  // Touch events for mobile compatibility
   canvas.addEventListener('touchstart', (e) => {
     isDrawing = true;
     scratch(e.touches[0]);
-    console.log('touchstart detected');
+    e.preventDefault();
   });
 
   canvas.addEventListener('touchmove', (e) => {
     scratch(e.touches[0]);
-    e.preventDefault(); // Prevent scrolling
-    if (isDrawing) console.log('touchmove detected');
+    e.preventDefault();
   });
 
-  canvas.addEventListener('touchend', () => {
-    isDrawing = false;
-    ctx.beginPath();
-    console.log('touchend detected');
-  });
+  canvas.addEventListener('touchend', () => isDrawing = false);
 
   function scratch(e) {
     if (!isDrawing) return;
-
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    ctx.lineTo(x, y);
-    ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(x, y);
+    ctx.arc(x, y, 15, 0, Math.PI * 2); // Draw a circular scratch area
+    ctx.fill();
   }
-
-  // Resize canvas if window is resized
-  window.addEventListener('resize', resizeCanvas);
 </script>
 
 </body>
