@@ -53,12 +53,14 @@
   const ctx = canvas.getContext('2d');
 
   // Set canvas size
-  canvas.width = canvas.offsetWidth;
-  canvas.height = canvas.offsetHeight;
+  function resizeCanvas() {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    ctx.fillStyle = 'silver';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
 
-  // Fill the canvas with a scratch-off color
-  ctx.fillStyle = 'silver';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  resizeCanvas(); // Initialize the canvas size and color
 
   // Set composite operation for scratching effect
   ctx.globalCompositeOperation = 'destination-out';
@@ -72,29 +74,37 @@
   canvas.addEventListener('mousedown', (e) => {
     isDrawing = true;
     scratch(e);
+    console.log('mousedown detected');
   });
 
-  canvas.addEventListener('mousemove', scratch);
-  
+  canvas.addEventListener('mousemove', (e) => {
+    scratch(e);
+    if (isDrawing) console.log('mousemove detected');
+  });
+
   canvas.addEventListener('mouseup', () => {
     isDrawing = false;
     ctx.beginPath(); // Reset path to avoid connecting lines
+    console.log('mouseup detected');
   });
 
   // Touch events for mobile
   canvas.addEventListener('touchstart', (e) => {
     isDrawing = true;
     scratch(e.touches[0]);
+    console.log('touchstart detected');
   });
 
   canvas.addEventListener('touchmove', (e) => {
     scratch(e.touches[0]);
     e.preventDefault(); // Prevent scrolling
+    if (isDrawing) console.log('touchmove detected');
   });
 
   canvas.addEventListener('touchend', () => {
     isDrawing = false;
     ctx.beginPath();
+    console.log('touchend detected');
   });
 
   function scratch(e) {
@@ -109,6 +119,9 @@
     ctx.beginPath();
     ctx.moveTo(x, y);
   }
+
+  // Resize canvas if window is resized
+  window.addEventListener('resize', resizeCanvas);
 </script>
 
 </body>
