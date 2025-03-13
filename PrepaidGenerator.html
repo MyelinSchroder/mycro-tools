@@ -40,12 +40,15 @@
             padding: 10px;
             border: 1px solid #ccc;
             background: white;
-            justify-self: center;
+                /* Centering Fix */
+            margin: 20px auto; /* Centers horizontally */
+            justify-content: center; /* Ensures previews stay centered */
+            align-items: center;
+            text-align: center; /* Centers text inside */
         }
 
         .preview-item {
             margin: 10px;
-            scale: 0.5;
         }
 
         .preview-item canvas {
