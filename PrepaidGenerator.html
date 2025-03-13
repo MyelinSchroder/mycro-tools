@@ -31,13 +31,21 @@
         }
 
         #preview-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(212px, 1fr)); /* Ensures 4 across */
+            gap: 10px;
+            max-width: 860px; /* Ensures previews fit within a reasonable width */
+            max-height: 500px; /* Limits height and makes it scrollable */
+            overflow-y: auto; /* Enables vertical scrolling */
+            padding: 10px;
+            border: 1px solid #ccc;
+            background: white;
         }
 
         .preview-item {
             margin: 10px;
+            height: 316.25px;
+            width: 212.25px;
         }
     </style>
 </head>
@@ -84,8 +92,8 @@
                 ctx.drawImage(couponImage, 0, 0, canvas.width, canvas.height);
 
                 // Overlay QR Code (Positioned at bottom right)
-                const qrSize = 100;
-                ctx.drawImage(qrImage, canvas.width - qrSize - 20, canvas.height - qrSize - 20, qrSize, qrSize);
+                const qrSize = 256;
+                ctx.drawImage(qrImage, canvas.width - qrSize - 312, canvas.height - qrSize - 220, qrSize, qrSize);
 
                 // Save processed image
                 processedImages.push({ name: fileName, data: await getCanvasBlob(canvas) });
