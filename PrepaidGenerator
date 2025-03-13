@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Coupon Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f5f5f5;
+            margin: 20px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        input, button {
+            margin: 10px;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        canvas {
+            display: block;
+            margin: 20px auto;
+            border: 1px solid #ddd;
+        }
+
+        #preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .preview-item {
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>QR Code Coupon Generator</h1>
+    <input type="file" id="zipInput" accept=".zip">
+    <button onclick="processZip()">Process QR Codes</button>
+    <button id="downloadBtn" style="display:none;" onclick="downloadZip()">Download Coupons</button>
+
+    <div id="preview-container"></div>
+
+    <script>
+        let processedImages = [];
+
+        async function processZip() {
+            const fileInput = document.getElementById("zipInput").files[0];
+            if (!fileInput) {
+                alert("Please upload a ZIP file containing QR codes.");
+                return;
+            }
+
+            const zip = new JSZip();
+            const content = await zip.loadAsync(fileInput);
+            const files = Object.keys(content.files);
+            const backgroundSrc = "https://via.placeholder.com/400x250/FFD700/000000?text=Coupon"; // Change to actual coupon background image
+
+            processedImages = []; // Reset stored images
+            document.getElementById("preview-container").innerHTML = ""; // Clear previous previews
+
+            for (const fileName of files) {
+                if (!fileName.endsWith(".png") && !fileName.endsWith(".jpg")) continue; // Process only images
+
+                const fileData = await content.files[fileName].async("blob");
+                const qrImage = await createImageFromBlob(fileData);
+                const couponImage = await createImageFromURL(backgroundSrc);
+
+                const canvas = document.createElement("canvas");
+                canvas.width = 400;
+                canvas.height = 250;
+                const ctx = canvas.getContext("2d");
+
+                // Draw coupon background
+                ctx.drawImage(couponImage, 0, 0, canvas.width, canvas.height);
+
+                // Overlay QR Code (Positioned at bottom right)
+                const qrSize = 100;
+                ctx.drawImage(qrImage, canvas.width - qrSize - 20, canvas.height - qrSize - 20, qrSize, qrSize);
+
+                // Save processed image
+                processedImages.push({ name: fileName, data: await getCanvasBlob(canvas) });
+
+                // Display preview
+                const previewContainer = document.getElementById("preview-container");
+                const previewItem = document.createElement("div");
+                previewItem.className = "preview-item";
+                previewItem.appendChild(canvas);
+                previewContainer.appendChild(previewItem);
+            }
+
+            // Show download button after processing
+            document.getElementById("downloadBtn").style.display = "inline-block";
+        }
+
+        function createImageFromBlob(blob) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.src = URL.createObjectURL(blob);
+            });
+        }
+
+        function createImageFromURL(url) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.crossOrigin = "Anonymous"; // Prevent CORS issues
+                img.onload = () => resolve(img);
+                img.src = url;
+            });
+        }
+
+        function getCanvasBlob(canvas) {
+            return new Promise((resolve) => {
+                canvas.toBlob((blob) => resolve(blob), "image/png");
+            });
+        }
+
+        async function downloadZip() {
+            const zip = new JSZip();
+            const folder = zip.folder("coupons");
+
+            for (const { name, data } of processedImages) {
+                folder.file(name, data);
+            }
+
+            const zipBlob = await zip.generateAsync({ type: "blob" });
+            saveAs(zipBlob, "coupons.zip");
+        }
+    </script>
+
+</body>
+</html>
