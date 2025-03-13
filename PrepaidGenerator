@@ -63,7 +63,7 @@
             const zip = new JSZip();
             const content = await zip.loadAsync(fileInput);
             const files = Object.keys(content.files);
-            const backgroundSrc = "https://via.placeholder.com/400x250/FFD700/000000?text=Coupon"; // Change to actual coupon background image
+            const backgroundSrc = "CouponBackground.png"; // Change to actual coupon background image
 
             processedImages = []; // Reset stored images
             document.getElementById("preview-container").innerHTML = ""; // Clear previous previews
