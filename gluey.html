@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DeepSeek - Underwater Reveal</title>
+    <style>
+        body {
+            background: #001220;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            margin: 0;
+            font-family: 'Arial Black', sans-serif;
+        }
+        
+        .ocean {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .title {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 5rem;
+            color: transparent;
+            text-align: center;
+            letter-spacing: 0.5rem;
+        }
+        
+        .title span {
+            display: inline-block;
+            position: relative;
+            animation: floatUp 1.2s ease-out forwards;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0);
+            opacity: 0;
+            color: #00ffff;
+        }
+        
+        /* Letter-specific delays */
+        .title span:nth-child(1) { animation-delay: 0.1s; } /* D */
+        .title span:nth-child(2) { animation-delay: 0.2s; } /* e */
+        .title span:nth-child(3) { animation-delay: 0.3s; } /* e */
+        .title span:nth-child(4) { animation-delay: 0.4s; } /* p */
+        .title span:nth-child(5) { animation-delay: 0.6s; } /* S */
+        .title span:nth-child(6) { animation-delay: 0.7s; } /* e */
+        .title span:nth-child(7) { animation-delay: 0.8s; } /* e */
+        .title span:nth-child(8) { animation-delay: 0.9s; } /* k */
+        
+        @keyframes floatUp {
+            0% {
+                transform: translateY(100px) rotateX(90deg);
+                opacity: 0;
+                filter: blur(5px);
+            }
+            100% {
+                transform: translateY(0) rotateX(0);
+                opacity: 1;
+                text-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+                filter: blur(0);
+            }
+        }
+        
+        /* Searchlight */
+        .searchlight {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(0,255,255,0.3) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: scan 6s linear infinite;
+            opacity: 0;
+            top: 50%;
+            left: 0;
+            transform: translate(-100%, -50%);
+        }
+        
+        @keyframes scan {
+            0% { transform: translate(-100%, -50%); opacity: 0; }
+            20% { opacity: 0.6; }
+            80% { opacity: 0.6; }
+            100% { transform: translate(100vw, -50%); opacity: 0; }
+        }
+        
+        /* Bubbles */
+        .bubble {
+            position: absolute;
+            background: rgba(0, 255, 255, 0.15);
+            border-radius: 50%;
+            animation: bubbleUp linear infinite;
+            bottom: -50px;
+        }
+        
+        @keyframes bubbleUp {
+            to { transform: translateY(-100vh); }
+        }
+    </style>
+</head>
+<body>
+    <div class="ocean">
+        <h1 class="title">
+            <span>B</span>
+            <span>I</span>
+            <span>G</span>
+            <span> </span>
+            <span>N</span>
+            <span>A</span>
+            <span>T</span>
+            <span>E</span>
+        </h1>
+        <div class="searchlight"></div>
+    </div>
+
+    <script>
+        // Create bubbles
+        function createBubbles() {
+            const ocean = document.querySelector('.ocean');
+            for (let i = 0; i < 40; i++) {
+                const bubble = document.createElement('div');
+                bubble.classList.add('bubble');
+                
+                // Random properties
+                const size = Math.random() * 20 + 5;
+                const left = Math.random() * 100;
+                const duration = Math.random() * 15 + 10;
+                const delay = Math.random() * 10;
+                
+                bubble.style.width = `${size}px`;
+                bubble.style.height = `${size}px`;
+                bubble.style.left = `${left}vw`;
+                bubble.style.animationDuration = `${duration}s`;
+                bubble.style.animationDelay = `${delay}s`;
+                
+                ocean.appendChild(bubble);
+            }
+        }
+        
+        // Initialize
+        window.onload = function() {
+            createBubbles();
+            
+            // Activate searchlight after letters appear
+            setTimeout(() => {
+                document.querySelector('.searchlight').style.opacity = "0.6";
+            }, 1500);
+        };
+    </script>
+</body>
+</html>
