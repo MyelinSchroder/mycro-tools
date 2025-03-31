@@ -61,26 +61,59 @@
         height: 316px;
         border: 1px solid #ddd;
         box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-}
+        }
+
+        #nav-links li {
+            background-color: aquamarine;
+            /* Optional: Add padding for better spacing */
+            padding: 8px 12px;
+            margin: 4px 0;
+            justify-self: center;
+            width: 10%;
+        }
+
+        #nav-links li a {
+            font-weight: bold;
+            font-variant: small-caps;
+            text-decoration: none;  /* Removes underline by default */
+            color: #333;            /* Default color (dark gray) */
+            transition: color 0.3s; /* Smooth color transition (optional) */
+        }
+
+        /* Unvisited link */
+        #nav-links li a:link {
+            color: #000307;         /* Blue-ish color for new links */
+        }
+
+        /* Visited link */
+        #nav-links li a:visited {
+            color: #150024;         /* Purple-ish for visited links */
+        }
+
+        /* Hover state */
+        #nav-links li a:hover {
+            color: #e74c3c;         /* Red-ish on hover */
+            background-color: #f8f8f8; /* Optional: Light background */
+        }
+
+        /* Active (being clicked) */
+        #nav-links li a:active {
+            color: #16a085;         /* Teal during click */
+        }
+
+        /* Focus state (keyboard navigation) */
+        #nav-links li a:focus {
+            outline: 2px solid #f39c12; /* Orange outline for accessibility */
+        }
     </style>
 </head>
 <body>
-     <header>
         <div class="container">
-            <nav>
-                <a href="index.html" class="logo">ToolChest</a>
-                <span class="menu-toggle" onclick="toggleMenu()">☰</span>
                 <ul id="nav-links">
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="barcode-gen.html">Barcode Generator</a></li>
-                    <li><a href="qr-code-gen.html">QR Code Generator</a></li>
-                    <li><a href="PrepaidGenerator.html">Coupon Maker</a></li>
-                    <li><a>Misc Test</a></li>
-                    <li><a href="lottery.html">Misc Test</a></li>
+                    <li><a href="qr-code-gen.html">Generate QR codes</a></li>
+                    <li><a href="barcode-gen.html">Generate Barcodes</a></li>
                 </ul>
-            </nav>
         </div>
-    </header>
 
     <h1>QR Code Coupon Generator</h1>
     <input type="file" id="zipInput" accept=".zip">
