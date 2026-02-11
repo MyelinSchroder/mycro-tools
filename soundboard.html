@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>24-Button Soundboard</title>
+  <style>
+    :root {
+      --bg: #0b0d12;
+      --panel: #121726;
+      --btn: #1b2336;
+      --btnHover: #24304a;
+      --text: #e9eefc;
+      --muted: #94a3b8;
+      --ring: rgba(120, 152, 255, 0.35);
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 700px at 20% 10%, #151a2d 0%, var(--bg) 55%);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+    }
+    .wrap {
+      width: min(1100px, 100%);
+      background: rgba(18, 23, 38, 0.75);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: calc(var(--radius) + 6px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      overflow: hidden;
+    }
+    header {
+      padding: 18px 18px 12px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.12);
+    }
+    h1 {
+      font-size: 16px;
+      margin: 0;
+      letter-spacing: 0.4px;
+      font-weight: 700;
+    }
+    .sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius);
+      user-select: none;
+    }
+    .control input[type="checkbox"] { transform: translateY(1px); }
+    .control label { font-size: 12px; color: var(--muted); cursor: pointer; }
+    .control input[type="range"] { width: 140px; }
+
+    main { padding: 18px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 12px;
+    }
+    @media (max-width: 980px) { .grid { grid-template-columns: repeat(4, 1fr); } }
+    @media (max-width: 640px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+
+    button.sound {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
+      background-color: var(--btn);
+      color: var(--text);
+      padding: 14px 12px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      text-align: left;
+      position: relative;
+      min-height: 74px;
+      transition: transform 0.05s ease, background 0.15s ease, border-color 0.15s ease;
+      outline: none;
+    }
+    button.sound:hover { background-color: var(--btnHover); border-color: rgba(255,255,255,0.16); }
+    button.sound:active { transform: translateY(1px) scale(0.995); }
+    button.sound:focus-visible { box-shadow: 0 0 0 4px var(--ring); }
+    .k {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 11px;
+      color: var(--muted);
+      border: 1px solid rgba(255,255,255,0.10);
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.18);
+    }
+    .title {
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+    .file {
+      font-size: 11px;
+      color: var(--muted);
+      word-break: break-all;
+    }
+    footer {
+      padding: 14px 18px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      color: var(--muted);
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      background: rgba(0,0,0,0.10);
+    }
+    .hint code {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 2px 6px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Soundboard (24 Buttons)</h1>
+        <div class="sub">Click a button or use hotkeys. Update file paths in the JS config.</div>
+      </div>
+
+      <div class="controls">
+        <div class="control">
+          <input id="stopAll" type="checkbox" checked />
+          <label for="stopAll">Stop other sounds on play</label>
+        </div>
+        <div class="control">
+          <label for="volume">Volume</label>
+          <input id="volume" type="range" min="0" max="1" step="0.01" value="0.85" />
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div id="grid" class="grid"></div>
+    </main>
+
+    <footer>
+      <div class="hint">Hotkeys: <code>1-0</code>, <code>Q-P</code>, <code>A-D</code> (24 total)</div>
+      <div id="status">Ready.</div>
+    </footer>
+  </div>
+
+  <script>
+    // --- 1) Configure your sounds here (24 entries) ---
+    // Put your audio files in a /sounds folder next to this HTML file, or update the paths.
+    const SOUNDS = [
+      { label: "Rev. Terri Sue", file: "Rev. Terri Sue McIntosh.mp3", key: "1" },
+      { label: "Bottom Line", file: "Bottom Line.mp3", key: "2" },
+      { label: "I Work For God", file: "I Work For God.mp3", key: "3" },
+      { label: "Not Done Yet", file: "Not Done Yet.mp3", key: "4" },
+      { label: "Ended Up", file: "Ended Up.mp3", key: "5" },
+      { label: "What are you, a cop?", file: "Entrapment.mp3", key: "6" },
+
+      { label: "Goodbye!", file: "Farewell John.mp3", key: "7" },
+      { label: "Sound 08", file: "sounds/08.mp3", key: "8" },
+      { label: "Sound 09", file: "sounds/09.mp3", key: "9" },
+      { label: "Sound 10", file: "sounds/10.mp3", key: "0" },
+      { label: "Sound 11", file: "sounds/11.mp3", key: "q" },
+      { label: "Sound 12", file: "sounds/12.mp3", key: "w" },
+
+      { label: "Sound 13", file: "sounds/13.mp3", key: "e" },
+      { label: "Sound 14", file: "sounds/14.mp3", key: "r" },
+      { label: "Sound 15", file: "sounds/15.mp3", key: "t" },
+      { label: "Sound 16", file: "sounds/16.mp3", key: "y" },
+      { label: "Sound 17", file: "sounds/17.mp3", key: "u" },
+      { label: "Sound 18", file: "sounds/18.mp3", key: "i" },
+
+      { label: "Sound 19", file: "sounds/19.mp3", key: "o" },
+      { label: "Sound 20", file: "sounds/20.mp3", key: "p" },
+      { label: "Sound 21", file: "sounds/21.mp3", key: "a" },
+      { label: "Sound 22", file: "sounds/22.mp3", key: "s" },
+      { label: "Sound 23", file: "sounds/23.mp3", key: "d" },
+      { label: "Sound 24", file: "sounds/24.mp3", key: "f" },
+    ];
+
+    // --- 2) Build UI + audio elements ---
+    const grid = document.getElementById("grid");
+    const stopAllCheckbox = document.getElementById("stopAll");
+    const volumeSlider = document.getElementById("volume");
+    const status = document.getElementById("status");
+
+    // Keep references so we can stop/reset them
+    const audioByKey = new Map();   // key -> Audio
+    const audioByIndex = [];        // index -> Audio
+
+    function setStatus(msg) {
+      status.textContent = msg;
+    }
+
+    function stopAllAudio() {
+      for (const a of audioByIndex) {
+        a.pause();
+        a.currentTime = 0;
+      }
+    }
+
+    function playSound(i) {
+      const a = audioByIndex[i];
+      if (!a) return;
+
+      if (stopAllCheckbox.checked) stopAllAudio();
+
+      // Reset for quick re-trigger
+      a.currentTime = 0;
+      a.volume = Number(volumeSlider.value);
+
+      a.play().then(() => {
+        setStatus(`Playing: ${SOUNDS[i].label}`);
+      }).catch((err) => {
+        // Common when browser blocks autoplay without interaction (keyboard is still interaction).
+        setStatus(`Could not play "${SOUNDS[i].label}" (check file path).`);
+        console.warn(err);
+      });
+    }
+
+    function makeButton(sound, i) {
+      const btn = document.createElement("button");
+      btn.className = "sound";
+      btn.type = "button";
+      btn.setAttribute("data-index", String(i));
+      btn.setAttribute("aria-label", `${sound.label} (key ${sound.key.toUpperCase()})`);
+
+      btn.innerHTML = `
+        <span class="k">${sound.key.toUpperCase()}</span>
+        <div class="title">${sound.label}</div>
+        <div class="file">${sound.file}</div>
+      `;
+
+      btn.addEventListener("click", () => playSound(i));
+      return btn;
+    }
+
+    // Create audio elements + buttons
+    SOUNDS.forEach((s, i) => {
+      const audio = new Audio(s.file);
+      audio.preload = "auto";
+      audioByIndex[i] = audio;
+      audioByKey.set(s.key.toLowerCase(), audio);
+
+      grid.appendChild(makeButton(s, i));
+    });
+
+    // --- 3) Keyboard support ---
+    window.addEventListener("keydown", (e) => {
+      // Ignore typing in inputs
+      const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+      if (tag === "input" || tag === "textarea" || e.isComposing) return;
+
+      const key = e.key.toLowerCase();
+      const idx = SOUNDS.findIndex(s => s.key.toLowerCase() === key);
+      if (idx !== -1) {
+        e.preventDefault();
+        playSound(idx);
+
+        // little visual feedback
+        const btn = grid.querySelector(`button.sound[data-index="${idx}"]`);
+        if (btn) {
+          btn.focus({ preventScroll: true });
+          btn.animate([{ transform: "scale(1)" }, { transform: "scale(0.98)" }, { transform: "scale(1)" }], { duration: 140 });
+        }
+      }
+
+      // Spacebar stops all (optional nice touch)
+      if (key === " ") {
+        e.preventDefault();
+        stopAllAudio();
+        setStatus("Stopped all sounds.");
+      }
+    });
+
+    // Volume live update (for currently playing audio too)
+    volumeSlider.addEventListener("input", () => {
+      const v = Number(volumeSlider.value);
+      for (const a of audioByIndex) a.volume = v;
+      setStatus(`Volume: ${Math.round(v * 100)}%`);
+    });
+  </script>
+</body>
+</html>
